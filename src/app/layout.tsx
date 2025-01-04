@@ -18,8 +18,10 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" className={`bg-white text-gray-800 ${inter.className}`}>
-            <body className="flex h-screen">
-            <main className="flex-grow overflow-hidden">{children}</main>
+            <body className="flex h-screen items-center justify-center">
+                <main className="flex-grow h-screen overflow-hidden">
+                    {children}
+                </main>
             </body>
         </html>
     );
