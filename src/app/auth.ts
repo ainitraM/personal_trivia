@@ -19,10 +19,15 @@ export const {
             name: "Credentials",
             async authorize(credentials) {
                 if (!credentials?.name || !credentials?.password) return null
-                const user = await getUser(credentials.name);
+                const typedCredentials = credentials as { name: string, password: string }
+                const user = await getUser(typedCredentials.name);
                 if (!user) return null;
-                const passwordsMatch = await compare(credentials.password, user.password!);
+                const passwordsMatch = await compare(typedCredentials.password, user.password!)
+                if (!passwordsMatch) {
+                    return null; // Return null if the password does not match
+                }
                 if (passwordsMatch) return user;
+                return null
             }
         }),
     ],
