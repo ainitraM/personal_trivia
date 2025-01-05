@@ -1,30 +1,16 @@
 'use client'
 
 import { FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { sign } from './sign';
+
 
 export default function Login() {
-    const router = useRouter()
-
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
 
         const formData = new FormData(event.currentTarget)
-        const username = formData.get('name')
-        const password = formData.get('password')
-
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
-        })
-
-        if (response.ok) {
-            router.push('/profile')
-        } else {
-            // Handle errors
+        await sign(formData.get('name') as string, formData.get('password') as string)
         }
-    }
 
     return (
         <main className="flex min-h-full flex-col p-6 items-center justify-center h-[50%]">

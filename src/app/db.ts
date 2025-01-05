@@ -15,3 +15,9 @@ export async function createUser(name: string, password: string) {
         },
     });
 }
+
+export async function getUser(name: string) {
+    return prisma.user.findFirst({
+        where: { name: name },
+    });
+}
