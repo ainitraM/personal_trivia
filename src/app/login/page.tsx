@@ -28,7 +28,7 @@ export default function Login() {
                         >
                             <span>Log in</span>
                         </button>
-                        <span className="font-sans text-sm">You don't have account yet? <Link href="/register" className="text-blue-100 hover:text-blue-800">Register</Link></span>
+                        <span className="font-sans text-sm">No account yet? <Link href="/register" className="text-blue-100 hover:text-blue-800">Register</Link></span>
                     </form>
                 </div>
             </div>
