@@ -3,6 +3,7 @@ import React, {useEffect} from 'react'
 import ClipLoader from "react-spinners/ClipLoader"
 import {useSession} from "@/app/provider";
 import {useRouter} from "next/navigation";
+import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
 // Note: Logout works with a direct link to NextAuth's unbranded /api/auth/signout
 // however signOut does not appear to work consistently (e.g. doesn't clear session) and may cause redirect loops
@@ -13,7 +14,7 @@ async function fetchCsrfToken() {
     return data.csrfToken;
 }
 
-async function manualSignOut(router) {
+async function manualSignOut(router: AppRouterInstance | string[]) {
     const csrfToken = await fetchCsrfToken();
 
     const formData = new URLSearchParams();
