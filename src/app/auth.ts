@@ -44,7 +44,7 @@ export const {
     callbacks: {
         async session({ session }) {
             const user = await getUser(session?.user?.name);
-            session.user.nickname = user?.nickname;
+            session.user.nickname = user?.nickname ?? undefined;
             return session
         },
     },
