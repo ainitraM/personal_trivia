@@ -2,7 +2,7 @@
 
 import { FormEvent } from 'react'
 import { sign } from './sign';
-
+import Link from 'next/link'
 
 export default function Login() {
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -14,7 +14,8 @@ export default function Login() {
 
     return (
         <main className="flex min-h-full flex-col p-6 items-center justify-center h-[50%]">
-            <div className="flex shrink-0 rounded-lg bg-blue-500 p-4 justify-center items-center w-2/5 h-[40%] shadow-lg shadow-gray-600">
+            <div
+                className="flex shrink-0 rounded-lg bg-blue-500 p-4 justify-center items-center w-2/5 h-[40%] shadow-lg shadow-gray-600">
                 <div className="flex items-center justify-center flex-col w-[100%] gap-4">
                     <span className="font-bold text-3xl">Login</span>
                     <form onSubmit={handleSubmit} className="flex items-center justify-center flex-col w-[100%] gap-4">
@@ -27,6 +28,7 @@ export default function Login() {
                         >
                             <span>Log in</span>
                         </button>
+                        <span className="font-sans text-sm">You don't have account yet? <Link href="/register" className="text-blue-100 hover:text-blue-800">Register</Link></span>
                     </form>
                 </div>
             </div>

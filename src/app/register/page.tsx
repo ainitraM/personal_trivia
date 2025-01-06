@@ -1,19 +1,25 @@
 'use client'
 
-import {FormEvent} from "react";
-
+import { FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { createUser } from '../db';
+import Link from "next/link";
 
 export default function Login() {
+    const router = useRouter();
+
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
 
         const formData = new FormData(event.currentTarget)
         const name = formData.get('name') as string;
         const password = formData.get('password') as string;
-
-        const result = await createUser(name, password);
-        console.log('result', result)
+        try {
+            await createUser(name, password);
+            router.push('/login')
+        } catch (error) {
+            console.error(error)
+        }
     }
 
     return (
@@ -32,6 +38,7 @@ export default function Login() {
                         >
                             <span>Register</span>
                         </button>
+                        <span className="font-sans text-sm">Already an user? <Link href="/login" className="text-blue-100 hover:text-blue-800">Login</Link></span>
                     </form>
                 </div>
             </div>

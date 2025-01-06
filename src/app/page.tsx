@@ -1,22 +1,60 @@
-import Link from 'next/link';
-// import prisma from '../lib/prisma';
+'use client'
+import React, {useEffect} from 'react'
+import ClipLoader from "react-spinners/ClipLoader"
+import {useSession} from "@/app/provider";
+import {useRouter} from "next/navigation";
 
-export default async function Page() {
-    //const users = await prisma.user.findMany();
+// Note: Logout works with a direct link to NextAuth's unbranded /api/auth/signout
+// however signOut does not appear to work consistently (e.g. doesn't clear session) and may cause redirect loops
+// hence manual session learning
+async function fetchCsrfToken() {
+    const response = await fetch('/api/auth/csrf');
+    const data = await response.json();
+    return data.csrfToken;
+}
+
+async function manualSignOut(router) {
+    const csrfToken = await fetchCsrfToken();
+
+    const formData = new URLSearchParams();
+    formData.append('csrfToken', csrfToken);
+    formData.append('json', 'true');
+
+    const response = await fetch('/api/auth/signout', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+    });
+
+    if (response.ok) {
+        console.log('Signed out successfully');
+        await router.push('/login')
+    } else {
+        console.error('Failed to sign out');
+    }
+}
+export default function Home() {
+    const session = useSession();
+    const router = useRouter();
+
+    useEffect(() => {
+        console.log(session)
+        if(!session?.loading && !session?.session?.user) router.push('/login');
+    }, [session, router])
 
     return (
-        <main className="flex min-h-screen flex-col p-6">
-            <div className="flex h-20 shrink-0 rounded-lg bg-blue-500 p-4 md:h-52 justify-center items-center">
-            </div>
-            <div className="mt-4 flex grow gap-4 md:flex-row">
-                <div className="flex flex-col justify-center gap-6 rounded-lg bg-gray-50 px-6 py-10 md:w-[100%] md:px-20 items-center">
-                    <Link
-                        href="/register"
-                        className="flex items-center gap-5 self-start rounded-lg bg-blue-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-400 md:text-base"
-                    >
-                        <span>Log in</span>
-                    </Link>
-                </div>
+        <main className="flex min-h-full flex-col p-6 items-center justify-center h-[50%]">
+            <div>
+                {session?.session?.user ? (
+                    <div className="flex flex-col gap-5">
+                        <h2>Logged as {session?.session?.user?.name}</h2>
+                        <button onClick={() => manualSignOut(router)}>Sign out</button>
+                    </div>
+                ) : (
+                    <ClipLoader color="#ffffff" size={150}/>
+                )}
             </div>
         </main>
     );

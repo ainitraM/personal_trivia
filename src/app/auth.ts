@@ -22,33 +22,30 @@ export const {
                 const typedCredentials = credentials as { name: string, password: string }
                 const user = await getUser(typedCredentials.name);
                 if (!user) return null;
-                const passwordsMatch = await compare(typedCredentials.password, user.password!)
-                if (!passwordsMatch) {
-                    return null; // Return null if the password does not match
+                try {
+                    const passwordsMatch = await compare(typedCredentials.password, user.password)
+                    if (!passwordsMatch) {
+                        return null; // Return null if the password does not match
+                    }
+                    if (passwordsMatch) return user;
+                } catch (error) {
+                    console.error("Error during credentials authorization:", error.cause);
+                    throw error;
                 }
-                if (passwordsMatch) return user;
                 return null
             }
         }),
     ],
     pages: {
-        signIn: "/login",
+        signIn: "/",
         signOut: "/login",
         error: "/login",
     },
     callbacks: {
-        authorized({auth, request: {nextUrl}}) {
-            const isLoggedIn = !!auth?.user;
-            const isOnDashboard = nextUrl.pathname.startsWith('/home');
-
-            if (isOnDashboard) {
-                if (isLoggedIn) return true;
-                return false; // better null handling
-            } else if (isLoggedIn) {
-                return Response.redirect(new URL('/home', nextUrl));
-            }
-
-            return true;
+        async session({ session }) {
+            const user = await getUser(session?.user?.name);
+            session.user.nickname = user?.nickname;
+            return session
         },
     },
 });
