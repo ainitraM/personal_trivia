@@ -29,7 +29,7 @@ export const {
                     }
                     if (passwordsMatch) return user;
                 } catch (error) {
-                    console.error("Error during credentials authorization:", error.cause);
+                    console.error('Problem with authentication')
                     throw error;
                 }
                 return null
