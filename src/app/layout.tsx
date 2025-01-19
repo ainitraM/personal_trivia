@@ -17,6 +17,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
     return (
         <Provider>
             <html lang="en" className={`bg-white text-gray-800 ${inter.className}`}>
