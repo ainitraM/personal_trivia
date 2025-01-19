@@ -1,10 +1,10 @@
 'use client'
 import React from 'react'
 
-export default function Home() {
+export default function Profile() {
     return (
         <div>
-            <div>Home Page</div>
+            <div>Profile</div>
         </div>
 
     );

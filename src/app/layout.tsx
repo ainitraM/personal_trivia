@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Inter } from 'next/font/google';
 import { Provider } from "./provider";
 import "./globals.css";
+import {Navbar} from "@/app/components/Navbar";
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -20,14 +21,13 @@ export default async function RootLayout({
 
     return (
         <Provider>
-            <html lang="en" className={`bg-white text-gray-800 ${inter.className}`}>
-                <body className="flex h-screen items-center justify-center">
-                        <main className="flex-grow h-screen overflow-hidden">
-                            {children}
-                        </main>
+            <html lang="en-PL" className={`bg-white text-gray-800 ${inter.className}`}>
+                <body className="flex h-screen">
+                    <Navbar />
+                    <main className="flex-grow h-screen overflow-hidden">{children}</main>
                 </body>
             </html>
         </Provider>
 
-);
+    );
 }

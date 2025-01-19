@@ -1,34 +1,43 @@
 "use client";
-import React, {useEffect, useState} from 'react';
+import React, { useEffect } from 'react';
 
 import { Session } from "next-auth";
-import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
+import ClipLoader from "react-spinners/ClipLoader";
+import {useCurrentSession} from "@/app/hooks/useCurrentSession";
 
 type SessionProviderProps = React.PropsWithChildren<{
     session?: Session | null;
+    status?: string;
 }>;
 
-const sessionContext = React.createContext<{ session: Session | null; loading: boolean } | null>(null);
+const sessionContext = React.createContext<{ session: Session | null; status: string } | null>(null);
 
-export function Provider({ session: initialSession = null, children }: SessionProviderProps) {
+export function Provider({ children }: SessionProviderProps) {
     // Workaround about issue with useSession described on https://github.com/nextauthjs/next-auth/discussions/5719
-    const [session, setSession] = React.useState<Session | null>(initialSession);
-    const [loading, setLoading] = useState(true);
-    const pathname = usePathname();
+    const { session, status } = useCurrentSession();
+
+    const router = useRouter();
 
     useEffect(() => {
-        const fetchSession = async () => {
-            if (!initialSession && loading) {
-                const fetchedSession = await fetch("/api/auth/session").then((res) => res.json());
-                setSession(fetchedSession);
-                setLoading(false);
-            }
-        };
+        if((!session?.user || status === 'unauthenticated') && status !== 'loading') router.push('/login')
+    }, [session, router, status])
 
-        fetchSession();
-    }, [session, pathname]);
 
-    return <sessionContext.Provider value={{ session, loading }}>{children}</sessionContext.Provider>;
+    if (status !== "authenticated")
+        return (
+            <html>
+                <body>
+                    <div className="flex h-screen justify-center items-center">
+                        <ClipLoader color="#ffffff" size={150}/>
+                    </div>
+                </body>
+            </html>
+
+        )
+    else {
+        return <sessionContext.Provider value={{session, status}}>{children}</sessionContext.Provider>;
+    }
 }
 
 export function useSession() {
