@@ -17,11 +17,11 @@ export default function Profile() {
     const [ avatarOptions, setAvatarOptions ] = useState(generateRandomAvatarOptions())
     const [nickname, setNickname] = useState(session?.user.nickname || 'not set');
 
-    const handleChange = (e) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNickname(e.target.value);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (session) {
             updateNickname(session.user.id || '', nickname)
