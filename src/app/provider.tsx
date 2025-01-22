@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 
 import { Session } from "next-auth";
-import { useRouter } from "next/navigation";
+import {usePathname, useRouter} from "next/navigation";
 import ClipLoader from "react-spinners/ClipLoader";
 import {useCurrentSession} from "@/app/hooks/useCurrentSession";
 
@@ -16,15 +16,16 @@ const sessionContext = React.createContext<{ session: Session | null; status: st
 export function Provider({ children }: SessionProviderProps) {
     // Workaround about issue with useSession described on https://github.com/nextauthjs/next-auth/discussions/5719
     const { session, status } = useCurrentSession();
+    const pathname = usePathname();
 
     const router = useRouter();
 
     useEffect(() => {
-        if((!session?.user || status === 'unauthenticated') && status !== 'loading') router.push('/login')
-    }, [session, router, status])
+        if((!session?.user || status === 'unauthenticated') && status !== 'loading' && !pathname.includes('/register')) router.push('/login')
+    }, [session, router, status, pathname])
 
 
-    if (status !== "authenticated")
+    if (status !== "authenticated" && !pathname.includes('/login') && !pathname.includes('/register'))
         return (
             <html>
                 <body>
@@ -38,8 +39,4 @@ export function Provider({ children }: SessionProviderProps) {
     else {
         return <sessionContext.Provider value={{session, status}}>{children}</sessionContext.Provider>;
     }
-}
-
-export function useSession() {
-    return React.useContext(sessionContext);
 }

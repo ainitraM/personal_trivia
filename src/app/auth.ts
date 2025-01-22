@@ -45,6 +45,8 @@ export const {
         async session({ session }) {
             const user = await getUser(session?.user?.name);
             session.user.nickname = user?.nickname ?? undefined;
+            session.user.id = user?.id ?? '';
+            session.user.avatar = user?.avatar ?? undefined;
             return session
         },
     },

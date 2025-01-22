@@ -10,6 +10,8 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@dicebear/collection": "^9.2.2",
+    "@dicebear/core": "^9.2.2",
     "@prisma/client": "^6.1.0",
     "@vercel/edge-config": "^1.4.0",
     "axios": "^1.7.9",

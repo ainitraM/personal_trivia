@@ -21,3 +21,21 @@ export async function getUser(name: string) {
         where: { name: name },
     });
 }
+
+export async function updateAvatar(id: string, avatar: string) {
+    return prisma.user.update({
+        where: { id: id },
+        data: {
+            avatar: avatar,
+        }
+    });
+}
+
+export async function updateNickname(id: string, nickname: string) {
+    return prisma.user.update({
+        where: { id: id },
+        data: {
+            nickname: nickname,
+        }
+    });
+}
