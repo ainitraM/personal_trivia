@@ -77,7 +77,7 @@ export function Navbar() {
                         Profile
                     </span>
                 </li>
-                <li key="2" className="flex-items-center gap-x-4 cursor-pointer p-2 flex">
+                <li key="2" className="flex-items-center gap-x-4 cursor-pointer p-2 flex" onClick={() => router.push('/')}>
                     <span className="block float-left">
                         <IoGameController className="text-4xl" />
                     </span>
@@ -89,7 +89,7 @@ export function Navbar() {
                         Play
                     </span>
                 </li>
-                <li key="3" className="flex-items-center gap-x-4 cursor-pointer p-2 flex">
+                <li key="3" className="flex-items-center gap-x-4 cursor-pointer p-2 flex" onClick={() => router.push('/trivias')}>
                     <span className="block float-left">
                         <GiPlagueDoctorProfile className="text-4xl" />
                     </span>

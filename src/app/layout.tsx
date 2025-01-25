@@ -24,7 +24,7 @@ export default async function RootLayout({
             <html lang="en-PL" className={`bg-white text-gray-800 ${inter.className}`}>
                 <body className="flex h-screen">
                     <Navbar />
-                    <main className="flex-grow h-screen overflow-hidden">{children}</main>
+                    <main className="flex-grow h-screen overflow-auto">{children}</main>
                 </body>
             </html>
         </Provider>

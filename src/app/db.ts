@@ -16,6 +16,21 @@ export async function createUser(name: string, password: string) {
     });
 }
 
+export async function createTrivia(authorId: string, trivia: string) {
+    return prisma.trivia.create({
+        data: {
+            authorId: authorId,
+            trivia: trivia,
+        }
+    })
+}
+
+export async function getTrivia(id: string) {
+    return prisma.trivia.findMany({
+        where: { authorId: id },
+    });
+}
+
 export async function getUser(name: string) {
     return prisma.user.findFirst({
         where: { name: name },

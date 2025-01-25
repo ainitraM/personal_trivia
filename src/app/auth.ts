@@ -1,7 +1,7 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { compare } from 'bcrypt-ts';
-import { getUser } from './db';
+import {getTrivia, getUser} from './db';
 
 export const {
     handlers: { GET, POST },
@@ -44,9 +44,13 @@ export const {
     callbacks: {
         async session({ session }) {
             const user = await getUser(session?.user?.name);
-            session.user.nickname = user?.nickname ?? undefined;
-            session.user.id = user?.id ?? '';
-            session.user.avatar = user?.avatar ?? undefined;
+            if (user) {
+                const trivia = await getTrivia(user?.id)
+                session.user.nickname = user.nickname ?? undefined;
+                session.user.id = user.id ?? '';
+                session.user.avatar = user.avatar ?? undefined;
+                session.trivia = trivia ?? [];
+            }
             return session
         },
     },

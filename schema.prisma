@@ -5,28 +5,46 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url = env("POSTGRES_PRISMA_POSTGRES_URL") // uses connection pooling
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_POSTGRES_URL") // uses connection pooling
   directUrl = env("POSTGRES_PRISMA_POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
 model Trivia {
-  id        String     @default(cuid()) @id
-  trivia     String
-  createdAt     DateTime  @default(now()) @map(name: "created_at")
-  updatedAt     DateTime  @updatedAt @map(name: "updated_at")
-  published Boolean @default(false)
-  author    User?   @relation(fields: [authorId], references: [id])
-  authorId  String?
+  id        String   @id @default(cuid())
+  trivia    String
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updatedAt DateTime @updatedAt @map(name: "updated_at")
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
 }
 
 model User {
-  id            String  @default(cuid()) @id
-  name          String  @unique
-  nickname      String?
-  avatar        String?
-  password      String
-  createdAt     DateTime  @default(now()) @map(name: "created_at")
-  updatedAt     DateTime  @updatedAt @map(name: "updated_at")
-  trivias       Trivia[]
+  id        String     @id @default(cuid())
+  name      String     @unique
+  nickname  String?
+  avatar    String?
+  password  String
+  createdAt DateTime   @default(now()) @map(name: "created_at")
+  updatedAt DateTime   @updatedAt @map(name: "updated_at")
+  trivia    Trivia[]
+  GameRoom  GameRoom[]
+}
+
+model GameRoom {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  createdAt   DateTime @default(now()) @map(name: "created_at")
+  updatedAt   DateTime @updatedAt @map(name: "updated_at")
+  host        User     @relation(fields: [hostId], references: [id])
+  hostId      String
+  players     Player[]
+  gameStarted Boolean  @default(false)
+}
+
+model Player {
+  id     String   @id @default(cuid())
+  name   String
+  room   GameRoom @relation(fields: [roomId], references: [id])
+  roomId String
 }
