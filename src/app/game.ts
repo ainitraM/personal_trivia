@@ -41,6 +41,8 @@ export async function joinGameRoom(roomCode: string, playerName: string) {
             include: { players: true }, // Include players for validation
         });
 
+        console.log(room)
+
         if (!room) {
             return NextResponse.json({ error: 'Room not found' }, { status: 404 });
         }

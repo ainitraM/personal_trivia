@@ -50,6 +50,7 @@ export default function Home() {
         if (playerName.trim() && roomCode.trim()) {
             await joinGameRoom(roomCode, playerName)
             console.log('data', data)
+            console.error('data', data)
             mutate(`/api/game/${roomCode}`);
         }
     };
@@ -85,7 +86,6 @@ export default function Home() {
         <div>
             <h1>Trivia Game</h1>
 
-            {!roomCode && (
                 <div>
                     <button onClick={handleCreateRoom}>Create Room</button>
                     <input
@@ -96,7 +96,6 @@ export default function Home() {
                     />
                     <button onClick={handleJoinRoom}>Join Room</button>
                 </div>
-            )}
 
             {data && data.players && data.players.length > 0 && (
                 <div>
