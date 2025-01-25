@@ -3,8 +3,11 @@
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-export async function GET(req: Request, { params }: { params: { roomCode: string } }) {
-    const { roomCode } = await params;
+export async function GET(
+    req: Request,
+    { params }: { params: Promise<{ roomCode: string }> },
+) {
+    const { roomCode } = await params; // Access params directly
 
     try {
         const room = await prisma.gameRoom.findUnique({
