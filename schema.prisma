@@ -28,7 +28,8 @@ model User {
   createdAt DateTime   @default(now()) @map(name: "created_at")
   updatedAt DateTime   @updatedAt @map(name: "updated_at")
   trivia    Trivia[]
-  GameRoom  GameRoom[]
+  hostedRooms GameRoom[] @relation("HostedRooms")
+  joinedRooms GameRoom[] @relation("PlayerInGameRooms")
 }
 
 model GameRoom {
@@ -36,15 +37,8 @@ model GameRoom {
   code        String   @unique
   createdAt   DateTime @default(now()) @map(name: "created_at")
   updatedAt   DateTime @updatedAt @map(name: "updated_at")
-  host        User     @relation(fields: [hostId], references: [id])
+  host        User     @relation("HostedRooms", fields: [hostId], references: [id], onDelete: Cascade)
   hostId      String
-  players     Player[]
   gameStarted Boolean  @default(false)
-}
-
-model Player {
-  id     String   @id @default(cuid())
-  name   String
-  room   GameRoom @relation(fields: [roomId], references: [id])
-  roomId String
+  players     User[]   @relation("PlayerInGameRooms")
 }

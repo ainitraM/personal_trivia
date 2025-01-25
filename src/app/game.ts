@@ -1,7 +1,7 @@
-'use server'
+'use server';
 
 import prisma from '../lib/prisma';
-import {NextResponse} from "next/server";
+import { NextResponse } from 'next/server';
 
 export async function createGameRoom(roomCode: string, hostId: string) {
     try {
@@ -15,25 +15,20 @@ export async function createGameRoom(roomCode: string, hostId: string) {
         }
 
         // Create a new game room
-        const room = await prisma.gameRoom.create({
+       return await prisma.gameRoom.create({
             data: {
                 code: roomCode,
                 hostId: hostId,
             },
         });
 
-        if (room) {
-            return room
-        }
-
-        return NextResponse.json({ error: 'Failed to create game room' }, { status: 500 });
     } catch (error) {
         console.error('Error creating game room:', error);
         return NextResponse.json({ error: 'Failed to create game room' }, { status: 500 });
     }
 }
 
-export async function joinGameRoom(roomCode: string, playerName: string) {
+export async function joinGameRoom(roomCode: string, userId: string) {
     try {
         // Check if the room exists
         const room = await prisma.gameRoom.findUnique({
@@ -41,27 +36,62 @@ export async function joinGameRoom(roomCode: string, playerName: string) {
             include: { players: true }, // Include players for validation
         });
 
-        console.log(room)
+        if (!room) {
+            return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+        }
+
+        // Check if the user is already in the room
+        const existingUser = room.players.find((user) => user.id === userId);
+        if (existingUser) {
+            return NextResponse.json({ error: 'User already in the room' }, { status: 400 });
+        }
+
+        // Add the user to the room
+        return await prisma.gameRoom.update({
+            where: { id: room.id },
+            data: {
+                players: {
+                    connect: { id: userId }, // Connect the existing user to the room
+                },
+            },
+        });
+
+    } catch (error) {
+        console.error('Error joining game room:', error);
+        return NextResponse.json({ error: 'Failed to join game room' }, { status: 500 });
+    }
+}
+
+export async function exitGameRoom(roomCode: string, userId: string) {
+    try {
+        // Check if the room exists
+        const room = await prisma.gameRoom.findUnique({
+            where: { code: roomCode },
+            include: { players: true }, // Include players for validation
+        });
 
         if (!room) {
             return NextResponse.json({ error: 'Room not found' }, { status: 404 });
         }
 
-        // Check if player already exists in the room
-        const existingPlayer = room.players.find((player) => player.name === playerName);
-        if (existingPlayer) {
-            return NextResponse.json({ error: 'Player already in the room' }, { status: 400 });
+        // Check if the user is in the room
+        const existingUser = room.players.find((user) => user.id === userId);
+        if (!existingUser) {
+            return NextResponse.json({ error: 'User not in the room' }, { status: 400 });
         }
 
-        // Add the player to the room
-        return await prisma.player.create({
+        // Remove the user from the room
+        return await prisma.gameRoom.update({
+            where: { id: room.id },
             data: {
-                name: playerName,
-                room: { connect: { id: room.id } },
+                players: {
+                    disconnect: { id: userId }, // Disconnect the user from the room
+                },
             },
         });
+
     } catch (error) {
-        console.error('Error joining game room:', error);
-        return NextResponse.json({ error: 'Failed to join game room' }, { status: 500 });
+        console.error('Error exiting game room:', error);
+        return NextResponse.json({ error: 'Failed to exit game room' }, { status: 500 });
     }
 }
