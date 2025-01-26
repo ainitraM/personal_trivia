@@ -4,7 +4,7 @@ import React, {useEffect, useState} from 'react';
 import useSWR, { mutate } from 'swr';
 import {useCurrentSession} from "@/app/hooks/useCurrentSession";
 import ClipLoader from "react-spinners/ClipLoader";
-import {createGameRoom, exitGameRoom, joinGameRoom} from "@/app/game";
+import {createGameRoom, exitGameRoom, joinGameRoom, nextGameRound, startNewGame} from "@/app/game";
 import {getTrivia} from "@/app/db";
 
 // SWR fetcher
@@ -16,13 +16,13 @@ export default function Home() {
     const [isRoomCodeInputVisible, setIsRoomCodeInputVisible] = useState<boolean>(false)
     const [isGameLoading, setIsGameLoading] = useState<boolean>(false)
 
-    // const [userAnswer, setUserAnswer] = useState('');
+    const [round, setRound] = useState(0);
 
     const { session } = useCurrentSession();
     const { data, error } = useSWR(
         roomCode ? `/api/game/${roomCode}` : null,
         fetcher,
-        { refreshInterval: 2000 }
+        { refreshInterval: 1000 }
     );
 
     useEffect(() => {
@@ -32,7 +32,9 @@ export default function Home() {
         console.log(data)
     }, [session, data])
 
-
+    useEffect(() => {
+        if (data) setRound(data.round)
+    }, [data]);
 
     const handleCreateRoom = async () => {
         const code = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -62,18 +64,25 @@ export default function Home() {
     const handleExitRoom = async () => {
         if (userId && roomCode.trim()) {
             await exitGameRoom(roomCode, userId)
-            console.log('data', data)
-            console.error('data', data)
-            mutate(`/api/game/${roomCode}`);
             window.location.reload()
         }
     }
 
-    const printPlayersTrivia = async () => {
+    const startGame = async () => {
+        const trivia: string[] = []
         for (const player of data.players) {
-            const trivia = await getTrivia(player.id)
-            console.log(trivia)
+            const triviaSet = await getTrivia(player.id)
+            triviaSet.forEach((individualTrivia) => {
+                trivia.push(individualTrivia.trivia)
+            })
         }
+        console.log(trivia)
+        await startNewGame(roomCode, trivia)
+    }
+
+    const handleNextRound = async () => {
+        await nextGameRound(roomCode)
+        mutate(`/api/game/${roomCode}`);
     }
 
     useEffect(() => {
@@ -89,24 +98,6 @@ export default function Home() {
         };
     }, [isRoomCodeInputVisible]);
 
-    // const handleStartGame = async () => {
-    //     await fetch(`/api/game/${roomCode}`, {
-    //         method: 'PUT',
-    //     });
-    //     mutate(`/api/game/${roomCode}`);
-    // };
-
-    // const handleSubmitAnswer = async () => {
-    //     if (userAnswer) {
-    //         await fetch(`/api/game/${roomCode}`, {
-    //             method: 'PATCH',
-    //             headers: { 'Content-Type': 'application/json' },
-    //             body: JSON.stringify({ player: playerName, answer: userAnswer }),
-    //         });
-    //         setUserAnswer('');
-    //         mutate(`/api/game/${roomCode}`);
-    //     }
-    // };
 
     if (error) return <div>Error loading game state</div>;
 
@@ -131,9 +122,9 @@ export default function Home() {
                 </div>
             )}
             {data && data.players && data.players.length > 0 && (
-                <div>
-                    <button onClick={()=> handleExitRoom()}>Exit room</button>
-                    <button onClick={printPlayersTrivia}>Print Trivia</button>
+                <div className="flex justify-center items-center h-screen gap-10">
+                    <button className="w-60 h-40 bg-blue-500 rounded content-center text-center hover:scale-105 text-xl" onClick={()=> handleExitRoom()}>Exit room</button>
+                    <button className="w-60 h-40 bg-blue-500 rounded content-center text-center hover:scale-105 text-xl" onClick={startGame}>Start game</button>
                 <h2>Room Code: {roomCode}</h2>
                     <ul>
                     {data.players?.map((player: { id: string; name: string; roomId: string }, idx: number) => (
@@ -175,6 +166,12 @@ export default function Home() {
             {isGameLoading && (
                 <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-150">
                     <ClipLoader color="#ffffff" size={150}/>
+                </div>
+            )}
+            {data && data.gameStarted && (
+                <div>
+                    <div>Round: {round}</div>
+                    <button onClick={()=>{handleNextRound()}}>Next round</button>
                 </div>
             )}
         </>

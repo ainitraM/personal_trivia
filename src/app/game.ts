@@ -1,7 +1,6 @@
 'use server';
 
 import prisma from '../lib/prisma';
-import { NextResponse } from 'next/server';
 
 export async function createGameRoom(roomCode: string, hostId: string) {
     try {
@@ -11,7 +10,7 @@ export async function createGameRoom(roomCode: string, hostId: string) {
         });
 
         if (existingRoom) {
-            return NextResponse.json({ error: 'Room already exists' }, { status: 400 });
+            return 'Room already exists'
         }
 
         // Create a new game room
@@ -24,7 +23,7 @@ export async function createGameRoom(roomCode: string, hostId: string) {
 
     } catch (error) {
         console.error('Error creating game room:', error);
-        return NextResponse.json({ error: 'Failed to create game room' }, { status: 500 });
+        return 'Failed to create game room'
     }
 }
 
@@ -37,13 +36,13 @@ export async function joinGameRoom(roomCode: string, userId: string) {
         });
 
         if (!room) {
-            return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+            return 'Room not found'
         }
 
         // Check if the user is already in the room
         const existingUser = room.players.find((user) => user.id === userId);
         if (existingUser) {
-            return NextResponse.json({ error: 'User already in the room' }, { status: 400 });
+            return 'User already in the room'
         }
 
         // Add the user to the room
@@ -58,7 +57,7 @@ export async function joinGameRoom(roomCode: string, userId: string) {
 
     } catch (error) {
         console.error('Error joining game room:', error);
-        return NextResponse.json({ error: 'Failed to join game room' }, { status: 500 });
+        return 'Failed to join game room'
     }
 }
 
@@ -71,13 +70,13 @@ export async function exitGameRoom(roomCode: string, userId: string) {
         });
 
         if (!room) {
-            return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+            return 'Room not found'
         }
 
         // Check if the user is in the room
         const existingUser = room.players.find((user) => user.id === userId);
         if (!existingUser) {
-            return NextResponse.json({ error: 'User not in the room' }, { status: 400 });
+            return 'User not in the room'
         }
 
         // Remove the user from the room
@@ -92,6 +91,60 @@ export async function exitGameRoom(roomCode: string, userId: string) {
 
     } catch (error) {
         console.error('Error exiting game room:', error);
-        return NextResponse.json({ error: 'Failed to exit game room' }, { status: 500 });
+        return 'Failed to exit game room'
+    }
+}
+
+export async function startNewGame(roomCode: string, trivia: string[]) {
+    try {
+        // Check if room already exists
+        const room = await prisma.gameRoom.findUnique({
+            where: { code: roomCode },
+            include: { players: true }, // Include players for validation
+        });
+
+        if (!room) {
+            return 'Room doesn\'t exists'
+        }
+
+        // Start game
+        return await prisma.gameRoom.update({
+            where: { id: room.id },
+            data: {
+                gameStarted: true,
+                triviaSet: trivia,
+                round: 1
+            },
+        });
+
+    } catch (error) {
+        console.error('Error starting game:', error);
+        return 'Failed to start game'
+    }
+}
+
+export async function nextGameRound(roomCode: string) {
+    try {
+        // Check if room already exists
+        const room = await prisma.gameRoom.findUnique({
+            where: { code: roomCode },
+            include: { players: true }, // Include players for validation
+        });
+
+        if (!room) {
+            return 'Room doesn\'t exists'
+        }
+
+        // Start game
+        return await prisma.gameRoom.update({
+            where: { id: room.id },
+            data: {
+                round: room.round + 1
+            },
+        });
+
+    } catch (error) {
+        console.error('Error starting game:', error);
+        return 'Failed to start game'
     }
 }
