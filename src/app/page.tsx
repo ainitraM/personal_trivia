@@ -81,6 +81,8 @@ export default function Home() {
         if (data) {
             if (round < data.round) {
                 console.log('Changing round', round)
+                setIsAnswerCorrect(2)
+                setUserAnswer(undefined)
                 setTimer(10)
             }
             setRound(data.round)
@@ -137,15 +139,12 @@ export default function Home() {
         console.log(mock_trivia)
         await startNewGame(roomCode, trivia)
         await mutate(`/api/game/${roomCode}`)
-        setTimer(10)
         setIsGameLoading(false)
     }
 
     const handleNextRound = async () => {
         setShowNextRoundButton(false)
         setIsGameLoading(true)
-        setIsAnswerCorrect(2)
-        setUserAnswer(undefined)
         await nextGameRound(roomCode)
         await mutate(`/api/game/${roomCode}`);
         setIsGameLoading(false)
@@ -168,6 +167,7 @@ export default function Home() {
         console.log(triviaSet)
         console.log(isAnswerCorrect)
         console.log(isGameLoading)
+        console.log('timer', timer)
         if (timer > 0) {
             const countdown = setInterval(() => {
                 setTimer((prev) => prev - 1);
@@ -185,8 +185,10 @@ export default function Home() {
             }
 
             setBlinking(true); // Start blinking effect
+            console.log('start blinking')
             setTimeout(() => {
                 setIsAnswerCorrect(2);
+                console.log('stop blinking')
                 setBlinking(false); // Stop blinking
             }, 2000);
 
