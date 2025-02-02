@@ -189,7 +189,6 @@ export default function Home() {
                 console.log('start blinking');
 
                 setTimeout(() => {
-                    setIsAnswerCorrect(2);
                     console.log('stop blinking');
                     setBlinking(false);
                 }, 2000);
