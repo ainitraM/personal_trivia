@@ -175,6 +175,8 @@ export default function Home() {
             return () => clearInterval(countdown); // Cleanup interval on component unmount or when timer changes
         }
 
+        if (timer === 0 && isAnswerCorrect === 2) return;
+
         if (timer === 0) {
             const currentRound = triviaSet?.[round - 1];
 
@@ -184,17 +186,20 @@ export default function Home() {
                 setIsAnswerCorrect(0); // Answer is incorrect
             }
 
-            setBlinking(true); // Start blinking effect
-            console.log('start blinking')
-            setTimeout(() => {
-                setIsAnswerCorrect(2);
-                console.log('stop blinking')
-                setBlinking(false); // Stop blinking
-            }, 2000);
+            if (!blinking) {  // Prevent multiple blink triggers
+                setBlinking(true);
+                console.log('start blinking');
 
-            setShowNextRoundButton(true); // Show button for the next round
+                setTimeout(() => {
+                    setIsAnswerCorrect(2);
+                    console.log('stop blinking');
+                    setBlinking(false);
+                }, 2000);
+            }
+
+            setShowNextRoundButton(true);
         }
-    }, [timer, round, userAnswer, triviaSet, isAnswerCorrect, isGameLoading]);
+    }, [timer]);
 
 
     if (error) return <div>Error loading game state</div>;
