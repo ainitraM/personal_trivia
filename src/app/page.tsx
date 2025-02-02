@@ -51,6 +51,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 export default function Home() {
     const [userId, setUserId] = useState('');
     const [roomCode, setRoomCode] = useState('');
+    const [round, setRound] = useState(0);
     const [isRoomCodeInputVisible, setIsRoomCodeInputVisible] = useState<boolean>(false)
     const [isGameLoading, setIsGameLoading] = useState<boolean>(false)
     const [timer, setTimer] = useState(10)
@@ -59,9 +60,6 @@ export default function Home() {
     const [userAnswer, setUserAnswer] = useState<string | undefined>()
     const [isAnswerCorrect, setIsAnswerCorrect] = useState<number>(2) // 0 - incorrect, 1 - correct, 2 - game ongoing
     const [blinking, setBlinking] = useState(false)
-
-
-    const [round, setRound] = useState(0);
 
     const { session } = useCurrentSession();
     const { data, error } = useSWR(
@@ -80,8 +78,14 @@ export default function Home() {
     }, [session, data])
 
     useEffect(() => {
-        if (data) setRound(data.round)
-    }, [data]);
+        if (data) {
+            if (round < data.round) {
+                console.log('Changing round', round)
+                setTimer(10)
+            }
+            setRound(data.round)
+        }
+    }, [data, round]);
 
     const handleCreateRoom = async () => {
         const code = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -145,7 +149,6 @@ export default function Home() {
         await nextGameRound(roomCode)
         await mutate(`/api/game/${roomCode}`);
         setIsGameLoading(false)
-        setTimer(10)
     }
 
     useEffect(() => {
