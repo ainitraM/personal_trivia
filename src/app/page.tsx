@@ -117,6 +117,7 @@ export default function Home() {
     }
 
     const startGame = async () => {
+        console.log('game starting')
         setIsGameLoading(true)
         const trivia: string[] = []
         for (const player of data.players) {
@@ -159,27 +160,35 @@ export default function Home() {
     }, [isRoomCodeInputVisible]);
 
     useEffect(() => {
+        console.log(triviaSet)
+        console.log(isAnswerCorrect)
+        console.log(isGameLoading)
         if (timer > 0) {
             const countdown = setInterval(() => {
                 setTimer((prev) => prev - 1);
             }, 1000);
             return () => clearInterval(countdown); // Cleanup interval on component unmount or when timer changes
         }
+
         if (timer === 0) {
-            if (round >= 1 && triviaSet && userAnswer === triviaSet[round - 1].answer) {
-                setIsAnswerCorrect(1);
+            const currentRound = triviaSet?.[round - 1];
+
+            if (currentRound && userAnswer === currentRound.answer) {
+                setIsAnswerCorrect(1); // Answer is correct
             } else {
-                setIsAnswerCorrect(0);
+                setIsAnswerCorrect(0); // Answer is incorrect
             }
 
             setBlinking(true); // Start blinking effect
             setTimeout(() => {
-                setIsAnswerCorrect(prev => prev === 1 ? 1 : 0);
-                setBlinking(false);
+                setIsAnswerCorrect(2);
+                setBlinking(false); // Stop blinking
             }, 2000);
-            setShowNextRoundButton(true);
+
+            setShowNextRoundButton(true); // Show button for the next round
         }
-    }, [timer, round, userAnswer, triviaSet]);
+    }, [timer, round, userAnswer, triviaSet, isAnswerCorrect, isGameLoading]);
+
 
     if (error) return <div>Error loading game state</div>;
 
