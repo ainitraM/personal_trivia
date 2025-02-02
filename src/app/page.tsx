@@ -175,8 +175,6 @@ export default function Home() {
             return () => clearInterval(countdown); // Cleanup interval on component unmount or when timer changes
         }
 
-        if (timer === 0 && isAnswerCorrect === 2) return;
-
         if (timer === 0) {
             const currentRound = triviaSet?.[round - 1];
 
@@ -197,7 +195,7 @@ export default function Home() {
                 }, 2000);
             }
 
-            setShowNextRoundButton(true);
+            setShowNextRoundButton(true); // Show button for the next round
         }
     }, [timer]);
 
