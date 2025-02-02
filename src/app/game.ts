@@ -144,7 +144,7 @@ export async function nextGameRound(roomCode: string) {
         });
 
     } catch (error) {
-        console.error('Error starting game:', error);
-        return 'Failed to start game'
+        console.error('Error next round:', error);
+        return 'Error next round'
     }
 }

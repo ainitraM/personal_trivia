@@ -12,6 +12,16 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      animation: {
+        blink: 'blink 200ms infinite',
+      },
+      keyframes: {
+        blink: {
+          '0%': { backgroundColor: 'red' },
+          '50%': { backgroundColor: 'green' },
+          '100%': { backgroundColor: 'red' },
+        },
+      },
     },
   },
   plugins: [],
