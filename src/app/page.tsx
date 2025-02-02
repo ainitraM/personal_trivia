@@ -54,7 +54,7 @@ export default function Home() {
     const [isRoomCodeInputVisible, setIsRoomCodeInputVisible] = useState<boolean>(false)
     const [isGameLoading, setIsGameLoading] = useState<boolean>(false)
     const [timer, setTimer] = useState(10)
-    const [triviaSet, setTriviaSet] = useState<Trivia[]>([])
+    const [triviaSet, setTriviaSet] = useState<Trivia[]>(mock_trivia)
     const [showNextRoundButton, setShowNextRoundButton] = useState<boolean>(false)
     const [userAnswer, setUserAnswer] = useState<string | undefined>()
     const [isAnswerCorrect, setIsAnswerCorrect] = useState<number>(2) // 0 - incorrect, 1 - correct, 2 - game ongoing
@@ -69,6 +69,8 @@ export default function Home() {
         fetcher,
         { refreshInterval: 1000 }
     );
+
+    //const isHost = data && data.hostId === userId
 
     useEffect(() => {
         if (session) {
