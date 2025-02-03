@@ -1,21 +1,21 @@
 'use client';
 
-import React, {useEffect, useState} from 'react';
+import React, {FormEvent, useEffect, useState} from 'react';
 import useSWR, { mutate } from 'swr';
 import {useCurrentSession} from "@/app/hooks/useCurrentSession";
 import ClipLoader from "react-spinners/ClipLoader";
-import {createGameRoom, exitGameRoom, joinGameRoom, nextGameRound, startNewGame} from "@/app/game";
-import {getTrivia} from "@/app/db";
+import {
+    createGameRoom,
+    exitGameRoom,
+    joinGameRoom,
+    nextGameRound,
+    setIsGameLoadingState,
+    startNewGame
+} from "@/app/game";
+import {GameTrivia} from "@/app/types";
 
-interface Trivia {
-    id: string
-    question: string
-    answer: string
-    [key: string]: string
-}
 
-
-const mock_trivia: Trivia[] = [
+const mock_trivia: GameTrivia[] = [
     {
         id: '1',
         question: 'What is 1+1?',
@@ -55,7 +55,7 @@ export default function Home() {
     const [isRoomCodeInputVisible, setIsRoomCodeInputVisible] = useState<boolean>(false)
     const [isGameLoading, setIsGameLoading] = useState<boolean>(false)
     const [timer, setTimer] = useState(10)
-    const [triviaSet, setTriviaSet] = useState<Trivia[]>(mock_trivia)
+    const [triviaSet, setTriviaSet] = useState<GameTrivia[]>()
     const [showNextRoundButton, setShowNextRoundButton] = useState<boolean>(false)
     const [userAnswer, setUserAnswer] = useState<string | undefined>()
     const [isAnswerCorrect, setIsAnswerCorrect] = useState<number>(2) // 0 - incorrect, 1 - correct, 2 - game ongoing
@@ -65,10 +65,8 @@ export default function Home() {
     const { data, error } = useSWR(
         roomCode ? `/api/game/${roomCode}` : null,
         fetcher,
-        { refreshInterval: 1000 }
+        { refreshInterval: 500 }
     );
-
-    //const isHost = data && data.hostId === userId
 
     useEffect(() => {
         if (session) {
@@ -79,6 +77,11 @@ export default function Home() {
 
     useEffect(() => {
         if (data) {
+            setIsGameLoading(data.gameLoading)
+            if(!triviaSet && data?.triviaSet) {
+                console.log(data)
+                setTriviaSet(JSON.parse(data.triviaSet))
+            }
             if (round < data.round) {
                 console.log('Changing round', round)
                 setIsAnswerCorrect(2)
@@ -105,14 +108,18 @@ export default function Home() {
         }
     };
 
-    const handleJoinRoom = async () => {
-        // error message about invalid roomCode
-        if (userId && roomCode.trim()) {
+    const handleJoinRoom = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+
+        const formData = new FormData(e.currentTarget)
+        const enteredRoomCode = formData.get("roomCode") as string
+
+        setRoomCode(enteredRoomCode)
+
+        if (userId && enteredRoomCode.trim()) {
             setIsGameLoading(true)
-            await joinGameRoom(roomCode, userId)
-            console.log('data', data)
-            console.error('data', data)
-            await mutate(`/api/game/${roomCode}`);
+            await joinGameRoom(enteredRoomCode, userId)
+            await mutate(`/api/game/${enteredRoomCode}`)
             setIsGameLoading(false)
         }
     };
@@ -126,28 +133,31 @@ export default function Home() {
 
     const startGame = async () => {
         console.log('game starting')
-        setIsGameLoading(true)
-        const trivia: string[] = []
-        for (const player of data.players) {
-            const triviaSet = await getTrivia(player.id)
-            triviaSet.forEach((individualTrivia) => {
-                trivia.push(individualTrivia.trivia)
+        // const trivia: Trivia[] = []
+        // for (const player of data.players) {
+        //     const triviaSet = await getTrivia(player.id)
+        //     triviaSet.forEach((individualTrivia) => {
+        //         trivia.push(individualTrivia.trivia)
+        //     })
+        // }
+
+        if (mock_trivia) {
+            setIsGameLoadingState(roomCode, true).then(async () => {
+                await startNewGame(roomCode, mock_trivia)
             })
+        } else {
+            console.log('empty triviaSet!!')
         }
-        setTriviaSet(mock_trivia)
-        console.log(trivia)
-        console.log(mock_trivia)
-        await startNewGame(roomCode, trivia)
         await mutate(`/api/game/${roomCode}`)
-        setIsGameLoading(false)
     }
 
     const handleNextRound = async () => {
         setShowNextRoundButton(false)
-        setIsGameLoading(true)
-        await nextGameRound(roomCode)
-        await mutate(`/api/game/${roomCode}`);
-        setIsGameLoading(false)
+        setIsGameLoadingState(roomCode, true).then(async () => {
+            await nextGameRound(roomCode)
+        })
+
+        await mutate(`/api/game/${roomCode}`)
     }
 
     useEffect(() => {
@@ -164,10 +174,6 @@ export default function Home() {
     }, [isRoomCodeInputVisible]);
 
     useEffect(() => {
-        console.log(triviaSet)
-        console.log(isAnswerCorrect)
-        console.log(isGameLoading)
-        console.log('timer', timer)
         if (timer > 0) {
             const countdown = setInterval(() => {
                 setTimer((prev) => prev - 1);
@@ -186,10 +192,7 @@ export default function Home() {
 
             if (!blinking) {  // Prevent multiple blink triggers
                 setBlinking(true);
-                console.log('start blinking');
-
                 setTimeout(() => {
-                    console.log('stop blinking');
                     setBlinking(false);
                 }, 2000);
             }
@@ -240,7 +243,7 @@ export default function Home() {
                     {showNextRoundButton && <button onClick={handleNextRound}>Next round</button>}
                     <div className="text-2xl font-bold">Time Remaining: {timer}s</div>
                     <div className="flex justify-center items-center h-screen gap-10 flex-col">
-                        {triviaSet.length >= round && triviaSet[round - 1]
+                        {triviaSet && triviaSet.length >= round && triviaSet[round - 1]
                             ?
                             (<>
                                 <h2 className="text-xl font-bold text-center">
@@ -285,33 +288,35 @@ export default function Home() {
             {isRoomCodeInputVisible && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                     <div className="bg-gray-300 p-6 rounded-lg shadow-lg w-full max-w-md">
-                        <div className="mb-4">
-                            <input
-                                type="text"
-                                placeholder="Enter Room Code"
-                                value={roomCode}
-                                className="text-black w-full h-20 text-4xl bg-gray-300"
-                                onChange={(e) => setRoomCode(e.target.value)}
-                            />
-                        </div>
-                        <div className="flex justify-end space-x-4">
-                            <button
-                                type="button"
-                                onClick={() => setIsRoomCodeInputVisible(false)}
-                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-400 transition"
-                            >
-                                Cancel
-                            </button>
-                            <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition"
-                                type="button"
-                                onClick={() => handleJoinRoom()}>
-                                Join
-                            </button>
-                        </div>
+                        <form onSubmit={handleJoinRoom}>
+                            <div className="mb-4">
+                                <input
+                                    type="text"
+                                    name="roomCode"
+                                    placeholder="Enter Room Code"
+                                    className="text-black w-full h-20 text-4xl bg-gray-300"
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsRoomCodeInputVisible(false)}
+                                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-400 transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition"
+                                >
+                                    Join
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
-            {isGameLoading && (
+            {(isGameLoading) && (
                 <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-150">
                     <ClipLoader color="#ffffff" size={150}/>
                 </div>

@@ -1,6 +1,7 @@
 'use server';
 
 import prisma from '../lib/prisma';
+import {GameTrivia} from "@/app/types";
 
 export async function createGameRoom(roomCode: string, hostId: string) {
     try {
@@ -95,7 +96,7 @@ export async function exitGameRoom(roomCode: string, userId: string) {
     }
 }
 
-export async function startNewGame(roomCode: string, trivia: string[]) {
+export async function startNewGame(roomCode: string, gameTrivia: GameTrivia[]) {
     try {
         // Check if room already exists
         const room = await prisma.gameRoom.findUnique({
@@ -112,7 +113,8 @@ export async function startNewGame(roomCode: string, trivia: string[]) {
             where: { id: room.id },
             data: {
                 gameStarted: true,
-                triviaSet: trivia,
+                triviaSet: JSON.stringify(gameTrivia),
+                gameLoading: false,
                 round: 1
             },
         });
@@ -139,12 +141,38 @@ export async function nextGameRound(roomCode: string) {
         return await prisma.gameRoom.update({
             where: { id: room.id },
             data: {
-                round: room.round + 1
+                round: room.round + 1,
+                gameLoading: false,
             },
         });
 
     } catch (error) {
         console.error('Error next round:', error);
         return 'Error next round'
+    }
+}
+
+export async function setIsGameLoadingState(roomCode: string, isLoading: boolean) {
+    try {
+        // Check if room already exists
+        const room = await prisma.gameRoom.findUnique({
+            where: { code: roomCode },
+            include: { players: true }, // Include players for validation
+        });
+
+        if (!room) {
+            return 'Room doesn\'t exists'
+        }
+
+        return await prisma.gameRoom.update({
+            where: { id: room.id },
+            data: {
+                gameLoading: isLoading
+            },
+        });
+
+    } catch (error) {
+        console.error('Error setting loading game state:', error);
+        return 'Error setting loading game state'
     }
 }

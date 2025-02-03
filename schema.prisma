@@ -41,6 +41,7 @@ model GameRoom {
   hostId      String
   gameStarted Boolean  @default(false)
   players     User[]   @relation("PlayerInGameRooms")
-  triviaSet   String[]
   round       Int      @default(0)
+  gameLoading Boolean  @default(false)
+  triviaSet   String?
 }
