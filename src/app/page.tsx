@@ -142,23 +142,33 @@ export default function Home() {
         // }
 
         if (mock_trivia) {
-            setIsGameLoadingState(roomCode, true).then(async () => {
-                await startNewGame(roomCode, mock_trivia)
-            })
+            setIsGameLoading(true)
+            await setIsGameLoadingState(roomCode, true)
+            await mutate(`/api/game/${roomCode}`, undefined, { revalidate: true })
+            await startNewGame(roomCode, mock_trivia)
+            await mutate(`/api/game/${roomCode}`, undefined, { revalidate: true })
+
         } else {
             console.log('empty triviaSet!!')
         }
-        await mutate(`/api/game/${roomCode}`)
+        setIsGameLoading(false)
     }
 
     const handleNextRound = async () => {
         setShowNextRoundButton(false)
-        setIsGameLoadingState(roomCode, true).then(async () => {
-            await nextGameRound(roomCode)
-        })
+        setIsGameLoading(true)
 
-        await mutate(`/api/game/${roomCode}`)
-    }
+        try {
+            await setIsGameLoadingState(roomCode, true)
+            await mutate(`/api/game/${roomCode}`, undefined, { revalidate: true })
+            await nextGameRound(roomCode)
+            await mutate(`/api/game/${roomCode}`, undefined, { revalidate: true })
+        } catch (error) {
+            console.error('Error progressing to the next round:', error)
+        } finally {
+            setIsGameLoading(false)
+        }
+    };
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -174,30 +184,32 @@ export default function Home() {
     }, [isRoomCodeInputVisible]);
 
     useEffect(() => {
-        if (timer > 0) {
-            const countdown = setInterval(() => {
-                setTimer((prev) => prev - 1);
-            }, 1000);
-            return () => clearInterval(countdown); // Cleanup interval on component unmount or when timer changes
-        }
-
-        if (timer === 0) {
-            const currentRound = triviaSet?.[round - 1];
-
-            if (currentRound && userAnswer === currentRound.answer) {
-                setIsAnswerCorrect(1); // Answer is correct
-            } else {
-                setIsAnswerCorrect(0); // Answer is incorrect
+        if(data?.gameStarted) {
+            if (timer > 0) {
+                const countdown = setInterval(() => {
+                    setTimer((prev) => prev - 1);
+                }, 1000);
+                return () => clearInterval(countdown); // Cleanup interval on component unmount or when timer changes
             }
 
-            if (!blinking) {  // Prevent multiple blink triggers
-                setBlinking(true);
-                setTimeout(() => {
-                    setBlinking(false);
-                }, 2000);
-            }
+            if (timer === 0) {
+                const currentRound = triviaSet?.[round - 1];
 
-            setShowNextRoundButton(true); // Show button for the next round
+                if (currentRound && userAnswer === currentRound.answer) {
+                    setIsAnswerCorrect(1); // Answer is correct
+                } else {
+                    setIsAnswerCorrect(0); // Answer is incorrect
+                }
+
+                if (!blinking) {  // Prevent multiple blink triggers
+                    setBlinking(true);
+                    setTimeout(() => {
+                        setBlinking(false);
+                    }, 2000);
+                }
+
+                setShowNextRoundButton(true); // Show button for the next round
+            }
         }
     }, [timer]);
 
