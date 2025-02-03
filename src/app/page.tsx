@@ -184,7 +184,6 @@ export default function Home() {
     }, [isRoomCodeInputVisible]);
 
     useEffect(() => {
-        if(data?.gameStarted) {
             if (timer > 0) {
                 const countdown = setInterval(() => {
                     setTimer((prev) => prev - 1);
@@ -210,7 +209,6 @@ export default function Home() {
 
                 setShowNextRoundButton(true); // Show button for the next round
             }
-        }
     }, [timer]);
 
 
