@@ -263,7 +263,7 @@ export default function Home() {
                                                     <img src={userAvatar} alt="Avatar"/>
                                                 </div>
                                                 <div className="flex flex-row items-center gap-2">
-                                                    {player.nickname || player.name}
+                                                    {player?.nickname || player?.name}
                                                     <div className="text-sm">
                                                         {player.id === data?.hostId ? '(HOST)' : null}
                                                     </div>
