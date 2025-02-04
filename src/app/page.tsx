@@ -13,6 +13,8 @@ import {
     startNewGame
 } from "@/app/game";
 import {GameTrivia} from "@/app/types";
+import {createAvatar} from "@dicebear/core";
+import {avataaars} from "@dicebear/collection";
 
 
 const mock_trivia: GameTrivia[] = [
@@ -77,6 +79,7 @@ export default function Home() {
 
     useEffect(() => {
         if (data) {
+            console.log(data.players)
             setIsGameLoading(data.gameLoading)
             if(!triviaSet && data?.triviaSet) {
                 console.log(data)
@@ -235,16 +238,58 @@ export default function Home() {
                 </div>
             )}
             {data && data.players && data.players.length > 0 && !data.gameStarted && (
-                <div className="flex justify-center items-center h-screen gap-10">
-                    <button className="w-60 h-40 bg-blue-500 rounded content-center text-center hover:scale-105 text-xl" onClick={()=> handleExitRoom()}>Exit room</button>
-                    <button className="w-60 h-40 bg-blue-500 rounded content-center text-center hover:scale-105 text-xl" onClick={startGame}>Start game</button>
-                <h2>Room Code: {roomCode}</h2>
-                    <ul>
-                    {data.players?.map((player: { id: string; name: string; roomId: string }, idx: number) => (
-                            <li key={player.id || idx}>{player.name}</li>
-                        ))}
-                    </ul>
+                <div className="h-screen">
+                    <div className="justify-center flex font-bold text-xl pt-10">Room Code: {roomCode}</div>
+                    <div className="flex justify-center items-center pt-20">
+                        <div className="flex flex-row items-start w-screen justify-around">
+                            <div className="flex flex-col p-5 rounded-lg shadow-md">
+                                <h2 className="text-xl font-semibold mb-2">Users in the room ({data?.players.length})</h2>
+                                <ul className="list-disc pl-5">
+                                    {data.players?.map((player: {
+                                        id: string
+                                        name: string
+                                        roomId: string
+                                        nickname: string
+                                        avatar: string
+                                    }, idx: number) => {
+                                        const userAvatar =
+                                            createAvatar(avataaars, {
+                                                size: 72,
+                                                seed: player?.avatar,
+                                            }).toDataUri();
+                                        return (
+                                            <li key={player.id || idx} className="text-lg flex flex-row items-center gap-5">
+                                                <div className="h-[64px] w-[64px] bg-white rounded-full z-0 object-fit overflow-hidden">
+                                                    <img src={userAvatar} alt="Avatar"/>
+                                                </div>
+                                                <div className="flex flex-row items-center gap-2">
+                                                    {player.nickname || player.name}
+                                                    <div className="text-sm">
+                                                        {player.id === data?.hostId ? '(HOST)' : null}
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        )
+                                        }
+                                    )}
+                                </ul>
+                            </div>
 
+                            <div className="flex flex-col gap-10">
+                                {userId === data?.hostId && (
+                                    <button
+                                        className="w-60 h-40 bg-blue-500 rounded content-center text-center hover:scale-105 text-xl"
+                                        onClick={startGame}>Start game
+                                    </button>
+                                )}
+                                <button
+                                    className="w-60 h-40 bg-blue-500 rounded content-center text-center hover:scale-105 text-xl"
+                                    onClick={() => handleExitRoom()}>Exit room
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
             )}
             {data && data.players && data.players.length > 0 && data.gameStarted && round > 0 && (
