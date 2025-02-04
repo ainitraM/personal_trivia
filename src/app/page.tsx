@@ -1,6 +1,6 @@
 'use client';
 
-import React, {FormEvent, useEffect, useState} from 'react';
+import React, {FormEvent, useEffect, useState, useMemo} from 'react';
 import useSWR, { mutate } from 'swr';
 import {useCurrentSession} from "@/app/hooks/useCurrentSession";
 import ClipLoader from "react-spinners/ClipLoader";
@@ -62,6 +62,8 @@ export default function Home() {
     const [userAnswer, setUserAnswer] = useState<string | undefined>()
     const [isAnswerCorrect, setIsAnswerCorrect] = useState<number>(2) // 0 - incorrect, 1 - correct, 2 - game ongoing
     const [blinking, setBlinking] = useState(false)
+
+    const randomSeed = useMemo(() => Math.random().toString(36).substring(2, 15), []);
 
     const { session } = useCurrentSession();
     const { data, error } = useSWR(
@@ -252,10 +254,11 @@ export default function Home() {
                                         nickname: string
                                         avatar: string
                                     }, idx: number) => {
+
                                         const userAvatar =
                                             createAvatar(avataaars, {
                                                 size: 72,
-                                                seed: player?.avatar,
+                                                seed: player?.avatar || randomSeed,
                                             }).toDataUri();
                                         return (
                                             <li key={player.id || idx} className="text-lg flex flex-row items-center gap-5">
